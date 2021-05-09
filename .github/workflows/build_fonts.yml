@@ -154,7 +154,8 @@ jobs:
           # Enforce a maximum number of pixels difference here ?
           # Each table cell is 45x45 px so there should (?) be no alignment problems,
           # and 2025px would be the max number of pixels changed per icon.
-          [ ${{ steps.image-diff.outputs.PXDIFF }} -lt 2025 ]
+          npxdiff=${{ steps.image-diff.outputs.PXDIFF }}
+          [ ${npxdiff:-0} -lt 2025 ]
 
         env:
           TOKEN: ${{ secrets.GIST_PUSHER }}
