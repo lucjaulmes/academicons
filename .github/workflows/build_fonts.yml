@@ -168,7 +168,7 @@ jobs:
           git add -u
           git add fonts/ css/ docs/
 
-          git commit -m "Images generated from ${{ needs.build.outputs.describe_commit }}"
+          git commit -m "Fonts generated from ${{ needs.build.outputs.describe_commit }}"
           git push https://${TOKEN}@github.com/${GITHUB_REPOSITORY} HEAD:master
 
         env:
