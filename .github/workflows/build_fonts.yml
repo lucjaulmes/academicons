@@ -110,7 +110,7 @@ jobs:
           ./test/capture.py -d firefox test/glyph-table.png
           rm -f *driver.log
 
-          npxdiff=`compare -metric AE -fuzz 25% test/glyph-table.current.png test/glyph-table.png test/glyph-table.diff.png || :`
+          npxdiff=`compare -metric AE -fuzz 25% test/glyph-table.current.png test/glyph-table.png test/glyph-table.diff.png 2>&1 || :`
           echo "::set-output name=PXDIFF::$npxdiff"
 
 
