@@ -7,6 +7,13 @@ on:
   pull_request:
     branches:
       - sources
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force deploying to master even if checks fail (yes/no)'
+        required: true
+        default: 'no'
+
 
 jobs:
   build:
@@ -150,19 +157,29 @@ jobs:
               https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$pr_number/comments \
               -d "{\"body\":\"Automatically generated preview of changes (in red):\n![glyph table]($image_url)\n(See [full glyph table](${image_url/.diff./.}).)\"}"
 
-
-          # Enforce a maximum number of pixels difference here ?
-          # Each table cell is 45x45 px so there should (?) be no alignment problems,
-          # and 2025px would be the max number of pixels changed per icon.
-          npxdiff=${{ steps.image-diff.outputs.PXDIFF }}
-          [ ${npxdiff:-0} -lt 2025 ]
-
         env:
           TOKEN: ${{ secrets.GIST_PUSHER }}
 
 
+      - name: Difference check
+        run: |
+          npxdiff=${{ steps.image-diff.outputs.PXDIFF }}
+          force=${{ steps.events.inputs.force }}
+
+          # Each table cell is 45x45 px so there should (?) be no alignment problems,
+          # and 2025px would be the max number of pixels changed per icon.
+          # ~1k for a new icon, ~110k for removing all glyphs.
+          echo "Pushing if $npxdiff < 5000 or $force != no"
+          if [ ${npxdiff:-0} -gt 5000 ] ; then
+            level=`[ "${force:-no}" != "no" ] && echo warning || echo error`
+            echo "::$level ::Number of different pixels exceeds limit: $npxdiff"
+
+            [ "${force:-no}" != "no" ] || exit 1
+          fi
+
+
       - name: Deploy to public branch
-        if: ${{ github.ref == 'refs/heads/sources' }} # Only run deploy on pushes to this branch
+        if: ${{ github.ref == 'refs/heads/sources' || steps.events.inputs.force != 'no' }}
         run: |
           # Add modified files and new files in selected subdirectories
           git add -u
