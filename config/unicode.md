@@ -22,6 +22,3 @@ unless name.nil? %>      <span class="ai ai-<%= name %> ai-2x" title="<%= name %
 <% end %>  </tr>
 <% end %>
 </table>
-
-</body>
-</html>

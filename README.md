@@ -12,6 +12,22 @@ New icons can be requested by creating an issue [here](https://github.com/jpswal
 
   * The icon can be reduced to monochrome. This is one of the basic requirements of a versatile icon, but it is often overlooked when icons are made by people who are not professional designers. Academia is full of unprofessional designers, and it is sometimes the case that a logo relies entirely on the use of different colours. In certain cases we can be creative (see the dblp logo), but more often than not it will be impossible to create a monochrome version of the icon. Again, feel free to make the request, but it will probably be ignored if an alternate logo cannot be found.
 
+You can also directly make a PR for a new icon to be included, see below.
+
+# Adding new icons
+
+To add a new icon with name ${name}, you need to add:
+- 1 svg file called `svg/${name}.svg` (use `template.svg` in this repo).
+- 1 svg file called `svg/${name}-square.svg` (use `template-square.svg`).
+  This should be roughly the same icon as the previous one but white on a black square
+- Add the file basenames to `config/codepoints.json` with 2 unused codepoints (ideally next to each other) from the codepage.
+  Refer to the [table of which codepoints are currently in use](https://jpswalsh.github.io/academicons/unicode).
+- Commit all these changes, and make a PR against the `sources` branch of this repo (should be the one selected by default).
+
+Here is [an example PR](https://github.com/lucjaulmes/academicons/pull/3) so you can see what to expect:
+- an automatically generated glyph table diff that shows what the PR changes
+- a link to a full and higher resolution glyph table to verify the glyphs render well
+
 # License
 
 - The Academicons font is licensed under the SIL OFL 1.1:
