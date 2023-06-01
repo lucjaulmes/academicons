@@ -1,6 +1,4 @@
 {
-"clarivate": 59684,
-"clarivate-square": 59685,
 "academia": 59823,
 "academia-square": 59709,
 "acclaim": 59694,
@@ -21,6 +19,8 @@
 "biorxiv-square": 59787,
 "ceur": 59757,
 "ceur-square": 59695,
+"clarivate": 59684,
+"clarivate-square": 59685,
 "ciencia-vitae": 59666,
 "ciencia-vitae-square": 59667,
 "conversation": 59724,
@@ -61,6 +61,8 @@
 "inspire-square": 59902,
 "isidore": 59702,
 "isidore-square": 59732,
+"isni": 59735,
+"isni-square": 59736,
 "jstor": 59704,
 "jstor-square": 59716,
 "lattes": 59827,
@@ -138,6 +140,8 @@
 "hypothesis-square": 59739,
 "ror": 59720,
 "ror-square": 59721,
+"viaf": 59699,
+"viaf-square": 59700,
 "wiley": 59686,
 "wiley-square": 59687
 }
