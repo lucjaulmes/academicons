@@ -31,6 +31,12 @@ jobs:
         run: |
           echo "::set-output name=commit::`git log -n1 --pretty=format:'commit %h by %aN <%aE>%n%n%ad | %B'`"
 
+      - uses: ruby/setup-ruby@v1
+        id: ruby
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
       - name: Install dependencies
         run: |
           sudo apt-get install zlib1g-dev fontforge lcdf-typetools jq yui-compressor
@@ -43,7 +49,7 @@ jobs:
             sudo make install || find * -maxdepth 0 -type f -executable -exec sudo cp -v {} /usr/local/bin/ \;
             popd
           done
-          sudo gem install fontcustom
+          sudo ${{ steps.ruby.outputs.ruby-prefix }}/bin/gem install fontcustom
 
       - name: Keep only specified input files
         run: |
