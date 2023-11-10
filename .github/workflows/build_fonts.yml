@@ -20,7 +20,12 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     outputs:
-      describe_commit: ${{ steps.describe.outputs.commit }}
+      commit_hash: ${{ steps.describe.outputs.hash }}
+      commit_date: ${{ steps.describe.outputs.date }}
+      commit_email: ${{ steps.describe.outputs.email }}
+      commit_author: ${{ steps.describe.outputs.author }}
+      commit_subject: ${{ steps.describe.outputs.subject }}
+      commit_body: ${{ steps.describe.outputs.body }}
 
     steps:
       - name: Get sources
@@ -29,7 +34,14 @@ jobs:
       - name: Describe commit
         id: describe
         run: |
-          echo "::set-output name=commit::`git log -n1 --pretty=format:'commit %h by %aN <%aE>%n%n%ad | %B'`"
+          echo "hash=`git log -n1 --pretty=format:'%h'`" | tee -a ${GITHUB_OUTPUT}
+          echo "date=`git log -n1 --pretty=format:'%ad'`" | tee -a ${GITHUB_OUTPUT}
+          echo "email=`git log -n1 --pretty=format:'%aE'`" | tee -a ${GITHUB_OUTPUT}
+          echo "author=`git log -n1 --pretty=format:'%aN'`" | tee -a ${GITHUB_OUTPUT}
+          echo "subject=`git log -n1 --pretty=format:'%s'`" | tee -a ${GITHUB_OUTPUT}
+          echo "body<<EOF" | tee -a ${GITHUB_OUTPUT}
+          git log -n1 --pretty=format:'%b' | tee -a ${GITHUB_OUTPUT}
+          echo "EOF" | tee -a ${GITHUB_OUTPUT}
 
       - uses: ruby/setup-ruby@v1
         id: ruby
@@ -85,7 +97,7 @@ jobs:
           ! otfinfo -u fonts/academicons.ttf  | grep -ve '^uniFFFF ' -e '^uniE9[0-9A-F][0-9A-F] '
 
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: academicons
           path: |
@@ -111,7 +123,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: Download the built sources
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: academicons
           path: .
@@ -124,7 +136,7 @@ jobs:
           rm -f *driver.log
 
           npxdiff=`compare -metric AE -fuzz 25% test/glyph-table.current.png test/glyph-table.png test/glyph-table.diff.png 2>&1 || :`
-          echo "::set-output name=PXDIFF::$npxdiff"
+          echo "PXDIFF=$npxdiff" | tee -a ${GITHUB_OUTPUT}
 
 
       - name: Push table diff to gist
@@ -136,13 +148,15 @@ jobs:
           cp test/glyph-table.diff.png test/glyph-table.png image-gist/
 
           git -C image-gist add glyph-table.diff.png glyph-table.png
-          git -C image-gist commit -m "Images generated from ${{ needs.build.outputs.describe_commit }}"
+          git -C image-gist commit -m "Images generated from ${{ needs.build.outputs.commit_subject }} (${{ needs.build.outputs.commit_hash }})" \
+               -m "${{ needs.build.outputs.commit_body }}" --date "${{ needs.build.outputs.commit_date }}" \
+               --author "${{ needs.build.outputs.commit_author }} <${{ needs.build.outputs.commit_email }}>"
 
           git -C image-gist push https://${TOKEN}@${GIST_URL#https://}
 
           image_url=${GIST_URL/github./githubusercontent.}/raw/$(git -C image-gist rev-parse HEAD)/glyph-table.diff.png
           echo "Diff image available at: $image_url"
-          echo "::set-output name=URL::$image_url"
+          echo "URL=$image_url" | tee -a ${GITHUB_OUTPUT}
 
           rm -rf image-gist
 
@@ -191,7 +205,9 @@ jobs:
           git add -u
           git add fonts/ css/ docs/
 
-          git commit -m "Fonts generated from ${{ needs.build.outputs.describe_commit }}"
+          git commit -m "Fonts generated from ${{ needs.build.outputs.commit_subject }} (${{ needs.build.outputs.commit_hash }})" \
+               -m "${{ needs.build.outputs.commit_body }}" --date "${{ needs.build.outputs.commit_date }}" \
+               --author "${{ needs.build.outputs.commit_author }} <${{ needs.build.outputs.commit_email }}>"
           git push https://${TOKEN}@github.com/${GITHUB_REPOSITORY} HEAD:master
 
         env:
