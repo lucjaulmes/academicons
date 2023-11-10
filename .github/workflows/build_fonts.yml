@@ -26,10 +26,11 @@ jobs:
       commit_author: ${{ steps.describe.outputs.author }}
       commit_subject: ${{ steps.describe.outputs.subject }}
       commit_body: ${{ steps.describe.outputs.body }}
+      version: ${{ steps.describe.outputs.version }}
 
     steps:
       - name: Get sources
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
       - name: Describe commit
         id: describe
@@ -42,6 +43,8 @@ jobs:
           echo "body<<EOF" | tee -a ${GITHUB_OUTPUT}
           git log -n1 --pretty=format:'%b' | tee -a ${GITHUB_OUTPUT}
           echo "EOF" | tee -a ${GITHUB_OUTPUT}
+          # Arbitrary mechanism for defining the version
+          echo "version=`yq -r .version config/fontcustom.yml`" | tee -a ${GITHUB_OUTPUT}
 
       - uses: ruby/setup-ruby@v1
         id: ruby
@@ -71,6 +74,7 @@ jobs:
 
       - name: Build fonts
         run: |
+          sed -i 's/<%= font_name %> [0-9.]\+/<%= font_name %> ${{ steps.describe.outputs.version }}/' config/academicons.css
           # Pre-populate manifest with fixed codepoints, by populating the glyphs from config/manifest-template.json
           # with the contents of config/codepoints.json
           jq '.glyphs = ($points[0] | with_entries({key: .key, value: {codepoint: .value}}))' \
@@ -110,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get sources
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
         with:
           ref: master
           fetch-depth: 0
@@ -201,6 +205,10 @@ jobs:
       - name: Deploy to public branch
         if: ${{ github.ref == 'refs/heads/sources' || steps.events.inputs.force != 'no' }}
         run: |
+          # Ensure version metadata is in sync
+          jq '.version="${{ needs.build.outputs.version }}"' package.json > update && mv update package.json
+          yq -i '.version="${{ needs.build.outputs.version }}"' docs/_config.yml
+
           # Add modified files and new files in selected subdirectories
           git add -u
           git add fonts/ css/ docs/
